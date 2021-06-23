@@ -3462,7 +3462,7 @@ pub fn waitpid(pid: pid_t, flags: u32) WaitPidResult {
     }
 }
 
-pub const Stat = if (builtin.link_libc)
+pub const Stat = if (builtin.os.tag != .wasi and builtin.link_libc)
     system.libc_stat
 else
     system.kernel_stat;
@@ -4656,7 +4656,7 @@ pub const ClockGetTimeError = error{UnsupportedClock} || UnexpectedError;
 /// TODO: change this to return the timespec as a return value
 /// TODO: look into making clk_id an enum
 pub fn clock_gettime(clk_id: i32, tp: *timespec) ClockGetTimeError!void {
-    if (std.Target.current.os.tag == .wasi) {
+    if (std.Target.current.os.tag == .wasi and !builtin.link_libc) {
         var ts: timestamp_t = undefined;
         switch (system.clock_time_get(@bitCast(u32, clk_id), 1, &ts)) {
             0 => {
@@ -4697,7 +4697,7 @@ pub fn clock_gettime(clk_id: i32, tp: *timespec) ClockGetTimeError!void {
 }
 
 pub fn clock_getres(clk_id: i32, res: *timespec) ClockGetTimeError!void {
-    if (std.Target.current.os.tag == .wasi) {
+    if (std.Target.current.os.tag == .wasi and !builtin.link_libc) {
         var ts: timestamp_t = undefined;
         switch (system.clock_res_get(@bitCast(u32, clk_id), &ts)) {
             0 => res.* = .{

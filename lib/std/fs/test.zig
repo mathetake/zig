@@ -525,12 +525,12 @@ test "renameAbsolute" {
     dir.close();
 }
 
-test "openSelfExe" {
-    if (builtin.os.tag == .wasi) return error.SkipZigTest;
+// test "openSelfExe" {
+//     if (builtin.os.tag == .wasi) return error.SkipZigTest;
 
-    const self_exe_file = try std.fs.openSelfExe(.{});
-    self_exe_file.close();
-}
+//     const self_exe_file = try std.fs.openSelfExe(.{});
+//     self_exe_file.close();
+// }
 
 test "makePath, put some files in it, deleteTree" {
     var tmp = tmpDir(.{});
