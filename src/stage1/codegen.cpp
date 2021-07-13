@@ -8160,7 +8160,13 @@ static void do_code_gen(CodeGen *g) {
                 maybe_export_dll(g, global_value, GlobalLinkageIdStrong);
             }
             if (var->section_name) {
-                LLVMSetSection(global_value, buf_ptr(var->section_name));
+                const char *section = buf_ptr(var->section_name);
+                if (target_is_wasm(g->zig_target) && memcmp(section, ".custom_section", strlen(".custom_section")) == 0) {
+                    LLVMValueRef section_node = LLVMMDString(section, buf_len(var->section_name) + 1);
+                    global_value
+                } else {
+                    LLVMSetSection(global_value, section);
+                }
             }
             LLVMSetAlignment(global_value, var->align_bytes);
 
