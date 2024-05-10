@@ -213,6 +213,14 @@ pub fn emitMir(
             .uxtb,
             .uxth,
             => try emit.mirExtend(inst),
+
+            .fadd,
+            .fsub,
+            .fmul,
+            .fdiv,
+            .fmin,
+            .fmax,
+            => try emit.mirFloatPointDataProcessing2Source(inst),
         }
     }
 }
@@ -539,6 +547,24 @@ fn mirDataProcessing2Source(emit: *Emit, inst: Mir.Inst.Index) !void {
         .lsr_register => try emit.writeInstruction(Instruction.lsrRegister(rd, rn, rm)),
         .sdiv => try emit.writeInstruction(Instruction.sdiv(rd, rn, rm)),
         .udiv => try emit.writeInstruction(Instruction.udiv(rd, rn, rm)),
+        else => unreachable,
+    }
+}
+
+fn mirFloatPointDataProcessing2Source(emit: *Emit, inst: Mir.Inst.Index) !void {
+    const tag = emit.mir.instructions.items(.tag)[inst];
+    const rrr = emit.mir.instructions.items(.data)[inst].rrr;
+    const rd = rrr.rd;
+    const rn = rrr.rn;
+    const rm = rrr.rm;
+
+    switch (tag) {
+        .fadd => try emit.writeInstruction(Instruction.fadd(rd, rn, rm)),
+        .fsub => try emit.writeInstruction(Instruction.fsub(rd, rn, rm)),
+        .fmul => try emit.writeInstruction(Instruction.fmul(rd, rn, rm)),
+        .fdiv => try emit.writeInstruction(Instruction.fdiv(rd, rn, rm)),
+        .fmin => try emit.writeInstruction(Instruction.fmin(rd, rn, rm)),
+        .fmax => try emit.writeInstruction(Instruction.fmax(rd, rn, rm)),
         else => unreachable,
     }
 }

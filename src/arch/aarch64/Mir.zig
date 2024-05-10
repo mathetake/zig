@@ -234,6 +234,18 @@ pub const Inst = struct {
         uxtb,
         /// Unsigned extend halfword
         uxth,
+        /// Floating-point add
+        fadd,
+        /// Floating-point subtract
+        fsub,
+        /// Floating-point multiply
+        fmul,
+        /// Floating-point divide
+        fdiv,
+        /// Floating-point minimum
+        fmin,
+        /// Floating-point maximum
+        fmax,
     };
 
     /// The position of an MIR instruction within the `Mir` instructions array.

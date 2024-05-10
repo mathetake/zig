@@ -507,6 +507,16 @@ pub const Instruction = union(enum) {
         fixed_2: u1 = 0b0,
         sf: u1,
     },
+    floating_point_data_processing_2_source: packed struct {
+        rd: u5,
+        rn: u5,
+        fixed_1: u2 = 0b10,
+        opcode: u4,
+        rm: u5,
+        fixed_2: u1 = 0b1,
+        ptype: u2,
+        fixed_3: u8 = 0b00011110,
+    },
 
     pub const Condition = enum(u4) {
         /// Integer: Equal
@@ -633,6 +643,7 @@ pub const Instruction = union(enum) {
             .conditional_select => |v| @as(u32, v.rd) | @as(u32, v.rn) << 5 | @as(u32, v.op2) << 10 | @as(u32, v.cond) << 12 | @as(u32, v.rm) << 16 | @as(u32, v.fixed) << 21 | @as(u32, v.s) << 29 | @as(u32, v.op) << 30 | @as(u32, v.sf) << 31,
             .data_processing_3_source => |v| @as(u32, @bitCast(v)),
             .data_processing_2_source => |v| @as(u32, @bitCast(v)),
+            .floating_point_data_processing_2_source => |v| @as(u32, @bitCast(v)),
         };
     }
 
@@ -1298,6 +1309,31 @@ pub const Instruction = union(enum) {
         };
     }
 
+    fn floatingPointDataProcessing2Source(
+        opcode: u4,
+        rd: Register,
+        rn: Register,
+        rm: Register,
+    ) Instruction {
+        assert(rd.size() == rn.size());
+        assert(rd.size() == rm.size());
+
+        return Instruction{
+            .floating_point_data_processing_2_source = .{
+                .rd = rd.enc(),
+                .rn = rn.enc(),
+                .opcode = opcode,
+                .rm = rm.enc(),
+                .ptype = switch (rd.size()) {
+                    16 => 0b11,
+                    32 => 0b00,
+                    64 => 0b01,
+                    else => unreachable, // unexpected register size
+                },
+            },
+        };
+    }
+
     // Helper functions for assembly syntax functions
 
     // Move wide (immediate)
@@ -1836,6 +1872,31 @@ pub const Instruction = union(enum) {
 
     pub fn asrv(rd: Register, rn: Register, rm: Register) Instruction {
         return dataProcessing2Source(0b0, 0b001010, rd, rn, rm);
+    }
+
+    // Floating-point data processing (2 source)
+    pub fn fmul(rd: Register, rn: Register, rm: Register) Instruction {
+        return floatingPointDataProcessing2Source(0b0000, rd, rn, rm);
+    }
+
+    pub fn fdiv(rd: Register, rn: Register, rm: Register) Instruction {
+        return floatingPointDataProcessing2Source(0b0001, rd, rn, rm);
+    }
+
+    pub fn fadd(rd: Register, rn: Register, rm: Register) Instruction {
+        return floatingPointDataProcessing2Source(0b0010, rd, rn, rm);
+    }
+
+    pub fn fsub(rd: Register, rn: Register, rm: Register) Instruction {
+        return floatingPointDataProcessing2Source(0b0011, rd, rn, rm);
+    }
+
+    pub fn fmax(rd: Register, rn: Register, rm: Register) Instruction {
+        return floatingPointDataProcessing2Source(0b0100, rd, rn, rm);
+    }
+
+    pub fn fmin(rd: Register, rn: Register, rm: Register) Instruction {
+        return floatingPointDataProcessing2Source(0b0101, rd, rn, rm);
     }
 
     pub const asrRegister = asrv;

@@ -1409,7 +1409,13 @@ fn minMax(
 ) !MCValue {
     const mod = self.bin_file.comp.module.?;
     switch (lhs_ty.zigTypeTag(mod)) {
-        .Float => return self.fail("TODO ARM min/max on floats", .{}),
+        .Float => {
+            return try self.binOpRegister(switch (tag) {
+                .min => .fmin,
+                .max => .fmax,
+                else => unreachable,
+            }, lhs_bind, rhs_bind, lhs_ty, rhs_ty, maybe_inst);
+        },
         .Vector => return self.fail("TODO ARM min/max on vectors", .{}),
         .Int => {
             assert(lhs_ty.eql(rhs_ty, mod));
@@ -1793,6 +1799,12 @@ fn binOpRegister(
         .lsr_register,
         .sdiv,
         .udiv,
+        .fadd,
+        .fsub,
+        .fmul,
+        .fdiv,
+        .fmin,
+        .fmax,
         => .{ .rrr = .{
             .rd = dest_reg,
             .rn = lhs_reg,
